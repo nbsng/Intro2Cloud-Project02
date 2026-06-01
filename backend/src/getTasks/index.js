@@ -11,7 +11,7 @@ const client = new DynamoDBClient(
         region: "local",
         credentials: { accessKeyId: "local", secretAccessKey: "local" },
       }
-    : {}, // production: real IAM role + VPC Endpoint, unchanged
+    : {},
 );
 const docClient = DynamoDBDocumentClient.from(client);
 

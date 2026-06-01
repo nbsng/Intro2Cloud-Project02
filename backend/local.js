@@ -35,4 +35,6 @@ app.post("/tasks", run(createTask));
 app.put("/tasks/:id", run(updateTask));
 app.delete("/tasks/:id", run(deleteTask));
 
-app.listen(3000, () => console.log("Local API: http://localhost:3000/tasks"));
+app.listen(3000, () =>
+  console.log("Local API Running: http://localhost:3000/tasks"),
+);
