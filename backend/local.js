@@ -1,4 +1,5 @@
 require("dotenv").config();
+console.log("ENV", process.env.LOCAL_DYNAMODB, process.env.TABLE_NAME);
 const express = require("express");
 
 const app = express();

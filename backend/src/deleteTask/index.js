@@ -7,7 +7,8 @@ const {
 const client = new DynamoDBClient(
   process.env.LOCAL_DYNAMODB
     ? {
-        endpoint: "http://localhost:8000",
+        endpoint:
+          process.env.LOCAL_DYNAMODB_ENDPOINT || "http://127.0.0.1:8000",
         region: "local",
         credentials: { accessKeyId: "local", secretAccessKey: "local" },
       }
