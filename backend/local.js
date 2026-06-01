@@ -1,9 +1,18 @@
 require("dotenv").config();
-console.log("ENV", process.env.LOCAL_DYNAMODB, process.env.TABLE_NAME);
 const express = require("express");
 
 const app = express();
 app.use(express.json());
+
+app.use((req, res, next) => {
+  res.set({
+    "Access-Control-Allow-Origin": process.env.CORS_ORIGIN || "*",
+    "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE",
+    "Access-Control-Allow-Headers": "Content-Type,Authorization",
+  });
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
 
 const getTasks = require("./src/getTasks/index").handler;
 const createTask = require("./src/createTask/index").handler;

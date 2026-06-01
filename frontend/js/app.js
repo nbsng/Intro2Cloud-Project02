@@ -1,8 +1,13 @@
 // =============================================================
 // CẤU HÌNH
 // =============================================================
-const { API_BASE_URL, COGNITO_DOMAIN, COGNITO_CLIENT_ID, REDIRECT_URI } =
-  window.APP_CONFIG;
+const {
+  API_BASE_URL,
+  COGNITO_DOMAIN,
+  COGNITO_CLIENT_ID,
+  REDIRECT_URI,
+  LOCAL_DEV,
+} = window.APP_CONFIG;
 
 // =============================================================
 // QUẢN LÝ THEME SÁNG / TỐI
@@ -125,6 +130,11 @@ function showAppSection() {
 // KHỞI TẠO — Xử lý các trường hợp khi load trang
 // =============================================================
 async function init() {
+  if (LOCAL_DEV) {
+    showAppSection();
+    fetchTasks();
+    return;
+  }
   const urlParams = new URLSearchParams(window.location.search);
   const code = urlParams.get("code");
   const error = urlParams.get("error");
@@ -189,7 +199,9 @@ logoutBtn.addEventListener("click", () => {
 async function fetchWithAuth(url, options = {}) {
   if (isSessionExpired) throw new Error("Session expired");
 
-  const token = localStorage.getItem("jwtToken");
+  const token = LOCAL_DEV
+    ? "local-dummy-token"
+    : localStorage.getItem("jwtToken");
   if (!token) {
     redirectToLogin();
     throw new Error("No token");
