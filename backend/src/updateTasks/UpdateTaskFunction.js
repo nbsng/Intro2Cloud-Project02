@@ -118,7 +118,7 @@ exports.handler = async (event) => {
         statusCode: 403,
         headers,
         body: JSON.stringify({
-          error: "Khong co quyen hoac task khong ton tai",
+          error: "Permission denied or task does not exist",
         }),
       };
     }

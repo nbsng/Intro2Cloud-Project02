@@ -49,7 +49,7 @@ exports.handler = async (event) => {
         statusCode: 400,
         headers,
         body: JSON.stringify({
-          error: "Thieu truong bat buoc: title hoac dueDate",
+          error: "Missing required fields: title hoac dueDate",
         }),
       };
     }
