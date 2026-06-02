@@ -75,6 +75,14 @@ exports.handler = async (event) => {
     }
 
     if (updates.length === 0) {
+      const emptyUpdateError = new Error(
+        "Validation Error: No valid fields provided for update.",
+      );
+      console.error(
+        `[ERROR] Bad Request for taskId ${taskId}:`,
+        emptyUpdateError,
+      );
+
       return {
         statusCode: 400,
         headers,

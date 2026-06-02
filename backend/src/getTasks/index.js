@@ -47,6 +47,30 @@ exports.handler = async (event) => {
 
     // Xu ly query parameters (loc theo priority / dueDate)
     if (event.queryStringParameters) {
+      const allowedFilters = ["priority", "dueDate"];
+      const receivedFilters = Object.keys(event.queryStringParameters);
+
+      const invalidFilters = receivedFilters.filter(
+        (key) => !allowedFilters.includes(key),
+      );
+      if (invalidFilters.length > 0) {
+        const errorMsg =
+          "Validation Error: Invalid filter parameters [" +
+          invalidFilters.join(", ") +
+          "]. Only allowed: priority, dueDate.";
+
+        console.error(
+          `[ERROR] Invalid query parameters from userId ${userId}:`,
+          new Error(errorMsg),
+        );
+
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: errorMsg }),
+        };
+      }
+
       const { priority, dueDate } = event.queryStringParameters;
       if (priority && priority !== "all") {
         filterExpressions.push("#priority = :priority");
