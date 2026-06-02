@@ -25,8 +25,7 @@
     │   ├── updateTask/index.js
     │   └── deleteTask/index.js
     └── scripts/
-        ├── create-table.sh
-        └── seed.sh
+      └── setup-local.js
 ```
 
 ---
@@ -37,10 +36,6 @@
 
 - **Node.js 20.x** (khớp runtime Lambda khi deploy)
 - **Docker** (chạy DynamoDB Local)
-- **AWS CLI** (các script `create-table.sh` / `seed.sh` dùng lệnh `aws`)
-
-> **Windows:** các file `.sh` không chạy được trong CMD/PowerShell. Hãy dùng **Git Bash**
-> hoặc **WSL** để chạy chúng, hoặc chạy tay các lệnh `aws` bên trong script (xem mục A.2).
 
 ### A.1) Bật DynamoDB Local
 
@@ -51,33 +46,9 @@ docker run -d -p 8000:8000 amazon/dynamodb-local -jar DynamoDBLocal.jar -sharedD
 Cờ `-sharedDb` cho DynamoDB Local dùng chung một database duy nhất (không phân tách theo
 region/credential) — tránh lỗi `ResourceNotFoundException` khó hiểu.
 
-Kiểm tra đã chạy:
+Nếu container không chạy, script ở bước A.3 sẽ thông báo lỗi kết nối.
 
-```bash
-aws dynamodb list-tables --endpoint-url http://localhost:8000
-```
-
-### A.2) Tạo bảng và seed dữ liệu
-
-```bash
-cd backend
-bash scripts/create-table.sh
-bash scripts/seed.sh
-```
-
-> **Windows (không có bash):** chạy trực tiếp 2 lệnh `aws` tương ứng — tạo bảng `TasksTable`
-> với partition key `taskId` (S) và GSI `userId-index` (partition key `userId`, S, projection ALL),
-> rồi `put-item` ít nhất 2 task thuộc 2 `userId` khác nhau.
-
-Kiểm tra dữ liệu:
-
-```bash
-aws dynamodb scan --table-name TasksTable --endpoint-url http://localhost:8000
-```
-
-Kết quả phải có `Count: 2` (2 user: `test-user-123` và `second-user-456`).
-
-### A.3) Cấu hình backend — `backend/.env`
+### A.2) Cấu hình backend — `backend/.env`
 
 ```env
 LOCAL_DYNAMODB=true
@@ -90,11 +61,23 @@ CORS_ORIGIN=http://localhost:5500
 > `LOCAL_DYNAMODB_ENDPOINT` (DynamoDB Local); khi không set (trên AWS) thì dùng IAM Role + VPC Endpoint.
 > `CORS_ORIGIN` phải khớp **origin của frontend** (cổng 5500).
 
-### A.4) Chạy backend
+### A.3) Tạo bảng và seed dữ liệu
 
 ```bash
 cd backend
 npm install
+node scripts/setup-local.js
+```
+
+Kiểm tra dữ liệu:
+
+- Chạy backend và gọi GET `/tasks` (mục A.4/A.6).
+- Kết quả phải trả về 2 task với 2 `userId` khác nhau (`test-user-123` va `second-user-456`).
+
+### A.4) Chạy backend
+
+```bash
+cd backend
 npm run local        # -> Local API: http://localhost:3000/tasks
 ```
 
@@ -145,8 +128,8 @@ curl -X DELETE http://localhost:3000/tasks/seed-1
 - **Chế độ local bỏ qua đăng nhập Cognito**: `local.js` tự gán mock userId `test-user-123`.
   Đây là cơ chế dành riêng cho phát triển; xác thực thật được kiểm chứng trên môi trường AWS.
 - **Lỗi CORS** → kiểm tra `CORS_ORIGIN` trong `.env` có khớp cổng frontend (5500) không.
-- **`ResourceNotFoundException`** → DynamoDB Local chưa có bảng (container vừa khởi động lại làm
-  mất dữ liệu); chạy lại `create-table.sh` và `seed.sh`.
+- **`ResourceNotFoundException`** → DynamoDB Local chưa có bảng (container vừa khởi động lại lam
+  mat du lieu); chay lai `node scripts/setup-local.js`.
 - **Thử quyền sở hữu**: cập nhật/xóa `seed-2` (thuộc `second-user-456`) sẽ trả về **403** —
   đúng với `ConditionExpression: userId = :uid`.
 
