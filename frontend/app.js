@@ -1,13 +1,16 @@
 // =============================================================
 // CẤU HÌNH
 // =============================================================
-const {
-  API_BASE_URL,
-  COGNITO_DOMAIN,
-  COGNITO_CLIENT_ID,
-  REDIRECT_URI,
-  LOCAL_DEV,
-} = window.APP_CONFIG;
+const LOCAL_DEV = true;
+const API_BASE_URL = LOCAL_DEV
+  ? "http://localhost:3000/tasks"
+  : "https://euvqiaztlh.execute-api.ap-southeast-1.amazonaws.com/prod/tasks";
+const COGNITO_DOMAIN =
+  "https://ap-southeast-1jheldqzud.auth.ap-southeast-1.amazoncognito.com";
+const COGNITO_CLIENT_ID = "68ea2boblh9dj09tnoqs8d964m";
+const REDIRECT_URI = LOCAL_DEV
+  ? "http://localhost:5500/"
+  : "https://d2amv6kar9xv3a.cloudfront.net/";
 
 // =============================================================
 // QUẢN LÝ THEME SÁNG / TỐI

@@ -11,10 +11,7 @@
 .
 ├── frontend/
 │   ├── index.html
-│   ├── css/styles.css
-│   └── js/
-│       ├── config.js        # cấu hình + cờ LOCAL_DEV
-│       └── app.js
+│   └── app.js
 └── backend/
     ├── package.json
     ├── .env                 # cấu hình local (KHÔNG commit)
@@ -72,7 +69,7 @@ node scripts/setup.js
 Kiểm tra dữ liệu:
 
 - Chạy backend và gọi GET `/tasks` (mục A.4/A.6).
-- Kết quả phải trả về 2 task với 2 `userId` khác nhau (`test-user-123` va `second-user-456`).
+- Kết quả phải trả về 2 task với 2 `userId` khác nhau (`test-user-123` và `second-user-456`).
 
 ### A.4) Chạy backend
 
@@ -83,16 +80,18 @@ npm run local        # -> Local API: http://localhost:3000/tasks
 
 ### A.5) Cấu hình & chạy frontend
 
-Trong `frontend/js/config.js`, bật chế độ local:
+Trong `frontend/app.js`, bật chế độ local:
 
 ```js
-window.APP_CONFIG = {
-  LOCAL_DEV: true, // local: true | deploy: false
-  API_BASE_URL: "http://localhost:3000/tasks",
-  COGNITO_DOMAIN: "https://<your-cognito-domain>",
-  COGNITO_CLIENT_ID: "<your-client-id>",
-  REDIRECT_URI: "http://localhost:5500/",
-};
+const LOCAL_DEV = true;
+const API_BASE_URL = LOCAL_DEV
+  ? "http://localhost:3000/tasks"
+  : "https://<api-id>.execute-api.ap-southeast-1.amazonaws.com/prod/tasks";
+const COGNITO_DOMAIN = "https://<your-cognito-domain>";
+const COGNITO_CLIENT_ID = "<your-client-id>";
+const REDIRECT_URI = LOCAL_DEV
+  ? "http://localhost:5500/"
+  : "https://<your-cloudfront-domain>/";
 ```
 
 Chạy frontend:
@@ -128,8 +127,8 @@ curl -X DELETE http://localhost:3000/tasks/seed-1
 - **Chế độ local bỏ qua đăng nhập Cognito**: `local.js` tự gán mock userId `test-user-123`.
   Đây là cơ chế dành riêng cho phát triển; xác thực thật được kiểm chứng trên môi trường AWS.
 - **Lỗi CORS** → kiểm tra `CORS_ORIGIN` trong `.env` có khớp cổng frontend (5500) không.
-- **`ResourceNotFoundException`** → DynamoDB Local chưa có bảng (container vừa khởi động lại lam
-  mat du lieu); chay lai `node scripts/setup.js`.
+- **`ResourceNotFoundException`** → DynamoDB Local chưa có bảng (container vừa khởi động lại làm
+  mất dữ liệu); chạy lại `node scripts/setup.js`.
 - **Thử quyền sở hữu**: cập nhật/xóa `seed-2` (thuộc `second-user-456`) sẽ trả về **403** —
   đúng với `ConditionExpression: userId = :uid`.
 
@@ -137,10 +136,11 @@ curl -X DELETE http://localhost:3000/tasks/seed-1
 
 ## B. Deploy lên AWS
 
-> Lambda nằm **trong VPC** và gọi DynamoDB qua **VPC Gateway Endpoint**
-> .Loại API là **REST API** (không dùng HTTP API). S3 phải **private**,
+> Lambda nằm **trong VPC** và gọi DynamoDB qua **VPC Gateway Endpoint**.
+> Loại API là **REST API** (không dùng HTTP API). S3 phải **private**,
 > chỉ phục vụ qua CloudFront + OAC. Trước khi deploy frontend, đặt `LOCAL_DEV: false` và **không**
 > set `LOCAL_DYNAMODB` / `LOCAL_DYNAMODB_ENDPOINT` cho Lambda.
+> (không tạo NAT Gateway).
 
 ### B.1) Mạng — VPC
 
@@ -201,16 +201,17 @@ Triển khai **riêng biệt** 4 function từ `backend/src`:
 - Tạo S3 bucket **private** (bật cả 4 Block Public Access; **không** bật Static Website Hosting).
 - Tạo CloudFront distribution với origin là bucket, dùng **OAC**; Bucket Policy chỉ cho phép
   CloudFront Service Principal đọc.
-- Cập nhật `frontend/js/config.js`:
+- Cập nhật `frontend/app.js`:
   ```js
-  window.APP_CONFIG = {
-    LOCAL_DEV: false,
-    API_BASE_URL:
-      "https://<api-id>.execute-api.ap-southeast-1.amazonaws.com/prod/tasks",
-    COGNITO_DOMAIN: "https://<your-cognito-domain>",
-    COGNITO_CLIENT_ID: "<your-client-id>",
-    REDIRECT_URI: "https://<your-cloudfront-domain>/",
-  };
+  const LOCAL_DEV = false;
+  const API_BASE_URL = LOCAL_DEV
+    ? "http://localhost:3000/tasks"
+    : "https://<api-id>.execute-api.ap-southeast-1.amazonaws.com/prod/tasks";
+  const COGNITO_DOMAIN = "https://<your-cognito-domain>";
+  const COGNITO_CLIENT_ID = "<your-client-id>";
+  const REDIRECT_URI = LOCAL_DEV
+    ? "http://localhost:5500/"
+    : "https://<your-cloudfront-domain>/";
   ```
 - Upload frontend lên S3 rồi invalidate cache:
   ```bash
@@ -219,7 +220,7 @@ Triển khai **riêng biệt** 4 function từ `backend/src`:
   ```
 
 > Lấy `API_BASE_URL`, `COGNITO_*` **sau khi** tạo API Gateway và Cognito, rồi mới điền vào
-> `config.js` và sync — thứ tự này quan trọng.
+> `app.js` và sync — thứ tự này quan trọng.
 
 ### B.8) Giám sát & Chi phí
 
@@ -231,10 +232,10 @@ Triển khai **riêng biệt** 4 function từ `backend/src`:
 
 ## Chuyển đổi local ↔ AWS
 
-|                              | Local                         | AWS                     |
-| ---------------------------- | ----------------------------- | ----------------------- |
-| `config.js` → `LOCAL_DEV`    | `true`                        | `false`                 |
-| `config.js` → `API_BASE_URL` | `http://localhost:3000/tasks` | URL API Gateway prod    |
-| `.env` → `LOCAL_DYNAMODB`    | `true`                        | (không set)             |
-| Xác thực                     | bỏ qua (mock userId)          | Cognito Authorizer thật |
-| Kết nối DynamoDB             | DynamoDB Local (cổng 8000)    | VPC Gateway Endpoint    |
+|                           | Local                         | AWS                     |
+| ------------------------- | ----------------------------- | ----------------------- |
+| `app.js` → `LOCAL_DEV`    | `true`                        | `false`                 |
+| `app.js` → `API_BASE_URL` | `http://localhost:3000/tasks` | URL API Gateway prod    |
+| `.env` → `LOCAL_DYNAMODB` | `true`                        | (không set)             |
+| Xác thực                  | bỏ qua (mock userId)          | Cognito Authorizer thật |
+| Kết nối DynamoDB          | DynamoDB Local (cổng 8000)    | VPC Gateway Endpoint    |
