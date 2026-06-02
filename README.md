@@ -20,12 +20,12 @@
     ├── .env                 # cấu hình local (KHÔNG commit)
     ├── local.js             # server Express giả lập API Gateway khi chạy local
     ├── src/
-    │   ├── getTasks/index.js
-    │   ├── createTask/index.js
-    │   ├── updateTask/index.js
-    │   └── deleteTask/index.js
+    │   ├── GetTasksFunction/index.js
+    │   ├── CreateTaskFunction/index.js
+    │   ├── UpdateTaskFunction/index.js
+    │   └── DeleteTaskFunction/index.js
     └── scripts/
-      └── setup-local.js
+      └── setup.js
 ```
 
 ---
@@ -66,7 +66,7 @@ CORS_ORIGIN=http://localhost:5500
 ```bash
 cd backend
 npm install
-node scripts/setup-local.js
+node scripts/setup.js
 ```
 
 Kiểm tra dữ liệu:
@@ -129,7 +129,7 @@ curl -X DELETE http://localhost:3000/tasks/seed-1
   Đây là cơ chế dành riêng cho phát triển; xác thực thật được kiểm chứng trên môi trường AWS.
 - **Lỗi CORS** → kiểm tra `CORS_ORIGIN` trong `.env` có khớp cổng frontend (5500) không.
 - **`ResourceNotFoundException`** → DynamoDB Local chưa có bảng (container vừa khởi động lại lam
-  mat du lieu); chay lai `node scripts/setup-local.js`.
+  mat du lieu); chay lai `node scripts/setup.js`.
 - **Thử quyền sở hữu**: cập nhật/xóa `seed-2` (thuộc `second-user-456`) sẽ trả về **403** —
   đúng với `ConditionExpression: userId = :uid`.
 

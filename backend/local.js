@@ -14,10 +14,10 @@ app.use((req, res, next) => {
   next();
 });
 
-const getTasks = require("./src/getTasks/index").handler;
-const createTask = require("./src/createTask/index").handler;
-const updateTask = require("./src/updateTask/index").handler;
-const deleteTask = require("./src/deleteTask/index").handler;
+const GetTasksFunction = require("./src/GetTasksFunction/index").handler;
+const CreateTaskFunction = require("./src/CreateTaskFunction/index").handler;
+const UpdateTaskFunction = require("./src/UpdateTaskFunction/index").handler;
+const DeleteTaskFunction = require("./src/DeleteTaskFunction/index").handler;
 
 // Fake Cognito claims (replaces the API Gateway Cognito Authorizer locally)
 const mockClaims = { sub: "test-user-123", "cognito:username": "tester" };
@@ -40,10 +40,10 @@ const run = (fn) => async (req, res) => {
   }
 };
 
-app.get("/tasks", run(getTasks));
-app.post("/tasks", run(createTask));
-app.put("/tasks/:id", run(updateTask));
-app.delete("/tasks/:id", run(deleteTask));
+app.get("/tasks", run(GetTasksFunction));
+app.post("/tasks", run(CreateTaskFunction));
+app.put("/tasks/:id", run(UpdateTaskFunction));
+app.delete("/tasks/:id", run(DeleteTaskFunction));
 
 app.listen(3000, () =>
   console.log("Local API Running: http://localhost:3000/tasks"),
