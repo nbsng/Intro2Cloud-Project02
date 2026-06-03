@@ -1,90 +1,158 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Serverless Task Manager</title>
 
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>"
+    />
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
+      tailwind.config = {
+        darkMode: "class",
+      };
     </script>
-    <style>
-        /* Tự động đổi màu native UI (lịch, cuộn chuột) theo theme */
-        html { color-scheme: light; }
-        html.dark { color-scheme: dark; }
-    </style>
-</head>
-<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 font-sans min-h-screen transition-colors duration-300">
-
-    <div id="auth-section" class="flex items-center justify-center min-h-screen">
-        <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-96 text-center transition-colors">
-            <div class="text-4xl mb-4 animate-bounce">⏳</div>
-            <h2 id="loading-text" class="text-xl font-bold mb-2 text-gray-800 dark:text-gray-100">Đang kiểm tra phiên...</h2>
-            <p class="text-gray-500 dark:text-gray-400 text-sm">Hệ thống đang kết nối bảo mật AWS</p>
-        </div>
+  </head>
+  <body
+    class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 font-sans min-h-screen transition-colors duration-300"
+  >
+    <div
+      id="auth-section"
+      class="flex items-center justify-center min-h-screen"
+    >
+      <div
+        class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-96 text-center transition-colors"
+      >
+        <div class="text-4xl mb-4 animate-bounce">⏳</div>
+        <h2
+          id="loading-text"
+          class="text-xl font-bold mb-2 text-gray-800 dark:text-gray-100"
+        >
+          Đang kiểm tra phiên...
+        </h2>
+        <p class="text-gray-500 dark:text-gray-400 text-sm">
+          Hệ thống đang kết nối bảo mật AWS
+        </p>
+      </div>
     </div>
 
     <div id="app-section" class="hidden max-w-4xl mx-auto p-6">
-        <header class="flex justify-between items-center mb-8 border-b dark:border-gray-700 pb-4">
-            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">Quản Lý Công Việc</h1>
-            <div class="flex gap-4">
-                <button id="theme-toggle" class="p-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition flex items-center justify-center w-10 h-10">
-                    <span id="theme-icon">🌙</span>
-                </button>
-                <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition font-medium">Đăng Xuất</button>
-            </div>
-        </header>
-
-        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm mb-6 flex gap-4 items-end transition-colors">
-            <div class="flex-1">
-                <label class="block text-sm font-medium mb-1 dark:text-gray-300">Lọc theo Ưu tiên</label>
-                <select id="filter-priority" class="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2">
-                    <option value="all">Tất cả</option>
-                    <option value="high">Cao</option>
-                    <option value="medium">Trung bình</option>
-                    <option value="low">Thấp</option>
-                </select>
-            </div>
-            <div class="flex-1">
-                <label class="block text-sm font-medium mb-1 dark:text-gray-300">Lọc theo Ngày hết hạn</label>
-                <input type="date" id="filter-date" class="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2" >
-            </div>
-            <button id="apply-filter-btn" class="bg-gray-800 dark:bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-900 dark:hover:bg-gray-500 transition font-medium">Lọc</button>
+      <header
+        class="flex justify-between items-center mb-8 border-b dark:border-gray-700 pb-4"
+      >
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">
+          Quản Lý Công Việc
+        </h1>
+        <div class="flex gap-4">
+          <button
+            id="theme-toggle"
+            class="p-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition flex items-center justify-center w-10 h-10"
+          >
+            <span id="theme-icon">🌙</span>
+          </button>
+          <button
+            id="logout-btn"
+            class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition font-medium"
+          >
+            Đăng Xuất
+          </button>
         </div>
+      </header>
 
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8 transition-colors">
-            <h3 class="text-lg font-bold mb-4 dark:text-gray-100">Tạo công việc mới</h3>
-            <form id="task-form" class="grid grid-cols-2 gap-4">
-                <div class="col-span-2">
-                    <input type="text" id="task-title" placeholder="Tiêu đề công việc" class="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2 placeholder-gray-400" required>
-                </div>
-                <div class="col-span-2">
-                    <textarea id="task-desc" placeholder="Chi tiết công việc (tùy chọn)" class="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2 placeholder-gray-400"></textarea>
-                </div>
-                <div>
-                    <select id="task-priority" class="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2">
-                        <option value="low">Ưu tiên: Thấp</option>
-                        <option value="medium">Ưu tiên: Trung bình</option>
-                        <option value="high">Ưu tiên: Cao</option>
-                    </select>
-                </div>
-                <div>
-                    <input type="date" id="task-due-date" class="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2" required>
-                </div>
-                <div class="col-span-2">
-                    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full transition font-medium">Thêm Công Việc</button>
-                </div>
-            </form>
+      <div
+        class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm mb-6 flex gap-4 items-end transition-colors"
+      >
+        <div class="flex-1">
+          <label class="block text-sm font-medium mb-1 dark:text-gray-300"
+            >Lọc theo Ưu tiên</label
+          >
+          <select
+            id="filter-priority"
+            class="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
+          >
+            <option value="all">Tất cả</option>
+            <option value="high">Cao</option>
+            <option value="medium">Trung bình</option>
+            <option value="low">Thấp</option>
+          </select>
         </div>
+        <div class="flex-1">
+          <label class="block text-sm font-medium mb-1 dark:text-gray-300"
+            >Lọc theo Ngày hết hạn</label
+          >
+          <input
+            type="date"
+            id="filter-date"
+            class="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
+          />
+        </div>
+        <button
+          id="apply-filter-btn"
+          class="bg-gray-800 dark:bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-900 dark:hover:bg-gray-500 transition font-medium"
+        >
+          Lọc
+        </button>
+      </div>
 
-        <div id="task-list" class="space-y-4"></div>
+      <div
+        class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8 transition-colors"
+      >
+        <h3 class="text-lg font-bold mb-4 dark:text-gray-100">
+          Tạo công việc mới
+        </h3>
+        <form id="task-form" class="grid grid-cols-2 gap-4">
+          <div class="col-span-2">
+            <input
+              type="text"
+              id="task-title"
+              placeholder="Tiêu đề công việc"
+              class="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2 placeholder-gray-400"
+              required
+            />
+          </div>
+          <div class="col-span-2">
+            <textarea
+              id="task-desc"
+              placeholder="Chi tiết công việc (tùy chọn)"
+              class="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2 placeholder-gray-400"
+            ></textarea>
+          </div>
+          <div>
+            <select
+              id="task-priority"
+              class="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
+            >
+              <option value="low">Ưu tiên: Thấp</option>
+              <option value="medium">Ưu tiên: Trung bình</option>
+              <option value="high">Ưu tiên: Cao</option>
+            </select>
+          </div>
+          <div>
+            <input
+              type="date"
+              id="task-due-date"
+              class="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
+              required
+            />
+          </div>
+          <div class="col-span-2">
+            <button
+              type="submit"
+              class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full transition font-medium"
+            >
+              Thêm Công Việc
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div id="task-list" class="space-y-4"></div>
     </div>
 
     <script src="app.js"></script>
-</body>
+  </body>
 </html>
